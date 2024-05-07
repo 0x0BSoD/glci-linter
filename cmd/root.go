@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/0x0BSoD/glci-linter/pkg/gitlab"
 	"github.com/0x0BSoD/glci-linter/pkg/helpers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,6 +37,14 @@ var rootCmd = &cobra.Command{
 	Use:   "glci-linter",
 	Short: "Generate and lint GitLab-CI yaml with GitLab API",
 	Long:  "",
+
+	Run: func(cmd *cobra.Command, args []string) {
+		client := gitlab.NewGitLabClient(".")
+		err := client.Lint()
+		if err != nil {
+			fmt.Println(err)
+		}
+	},
 }
 
 func Execute() {

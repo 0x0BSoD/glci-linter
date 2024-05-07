@@ -14,9 +14,8 @@ var lintCmd = &cobra.Command{
 	Long: `The 'lint' subcommand will try to find and lint gitlab-ci.yaml file in direcory settetd as first arg. For example:
 
 '<cmd> lint 'PATH TO directory with gitlab-ci.yaml'.`,
-	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		client := gitlab.NewGitLabClient(args[0])
+		client := gitlab.NewGitLabClient(".")
 		err := client.Lint()
 		if err != nil {
 			fmt.Println(err)

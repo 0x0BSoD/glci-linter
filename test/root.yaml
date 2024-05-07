@@ -1,0 +1,11 @@
+---
+.teardown:
+  after_script:
+    - echo deleting environment
+
+
+test:
+  script:
+    - echo running my own command
+  after_script:
+    - !reference [.teardown, after_script]

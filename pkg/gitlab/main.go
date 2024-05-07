@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/spf13/viper"
 )
 
 const (
@@ -17,27 +19,20 @@ type GitLabClient struct {
 	RepoPath   string
 	ServerUrl  string
 	RepoDir    string
+	LinterPath string
 	ShowMerged bool
 }
 
-func NewGitLabClient(token, repoDir string, showMerged bool) *GitLabClient {
+func NewGitLabClient(repoDir string) *GitLabClient {
 	res := GitLabClient{}
-
-	// The Env variable takes precedence over the CMD parameter
-	if os.Getenv("GITLAB_TOKEN") != "" {
-		res.Token = os.Getenv("GITLAB_TOKEN")
-	} else if token != "" {
-		res.Token = token
-	} else {
-		fmt.Fprint(os.Stderr, "GitLab Tokent must be set, parameter --token or env var GITLAB_TOKEN")
-		os.Exit(1)
-	}
 
 	server, path, _ := buildUrl(repoDir)
 	res.RepoPath = path
 	res.ServerUrl = server
 	res.RepoDir = repoDir
-	res.ShowMerged = showMerged
+	res.ShowMerged = viper.GetBool("show_merged")
+	res.LinterPath = viper.GetString("linter_path")
+	res.Token = viper.GetString("access_token")
 
 	return &res
 }
@@ -76,7 +71,7 @@ func (glc *GitLabClient) Lint() error {
 		return fmt.Errorf("[Lint] Unable to get ProjectID: %w", err)
 	}
 
-	content, err := prepareComabinedCiYaml(glc.RepoDir)
+	content, err := prepareComabinedCiYaml(glc.LinterPath, glc.RepoDir)
 	if err != nil {
 		return fmt.Errorf("[Lint] Can't build YAML: %w", err)
 	}

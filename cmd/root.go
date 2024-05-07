@@ -4,38 +4,43 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/0x0BSoD/glci-linter/pkg/gitlab"
+	"github.com/0x0BSoD/glci-linter/pkg/helpers"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var (
-	personalAccessToken string
-	repoPath            string
-	showMerged          bool
-)
+var configFile string
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&personalAccessToken, "token", "", "GitLab access token with api access")
-	rootCmd.PersistentFlags().StringVar(&repoPath, "path", ".", "Path to Gitr repo, default .")
-	rootCmd.PersistentFlags().BoolVar(&showMerged, "merged", false, "Show merged YAML")
+	cobra.OnInitialize(initConfig)
+}
+
+func initConfig() {
+	home := os.Getenv("HOME")
+	configFile = fmt.Sprintf("%s/.config/glci-linter/config.yaml", home)
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(configFile)
+
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("GLCI")
+	helpers.HandleError(viper.BindEnv("ACCESS_TOKEN"))
+	helpers.HandleError(viper.BindEnv("LINTER_PATH"))
+	helpers.HandleError(viper.BindEnv("SHOW_MERGED"))
+
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println(err)
+	}
 }
 
 var rootCmd = &cobra.Command{
 	Use:   "glci-linter",
 	Short: "Generate and lint GitLab-CI yaml with GitLab API",
 	Long:  "",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := gitlab.NewGitLabClient(personalAccessToken, repoPath, showMerged)
-		err := client.Lint()
-		if err != nil {
-			panic(err)
-		}
-	},
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your CLI '%s'", err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }

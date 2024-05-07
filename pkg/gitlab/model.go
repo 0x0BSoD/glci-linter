@@ -1,6 +1,8 @@
 package gitlab
 
-import "time"
+import (
+	"time"
+)
 
 type GitlabAPILintRequest struct {
 	Content string `json:"content"`

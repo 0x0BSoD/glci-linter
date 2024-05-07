@@ -1,75 +1,20 @@
 package gitlab
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/0x0BSoD/glci-linter/pkg/git"
+	"github.com/0x0BSoD/glci-linter/pkg/helpers"
 )
 
-func popLine(f *os.File) ([]byte, error) {
-	fi, err := f.Stat()
-	if err != nil {
-		return nil, err
-	}
-	buf := bytes.NewBuffer(make([]byte, 0, fi.Size()))
-
-	_, err = f.Seek(0, io.SeekStart)
-	if err != nil {
-		return nil, err
-	}
-	_, err = io.Copy(buf, f)
-	if err != nil {
-		return nil, err
-	}
-
-	line, err := buf.ReadBytes('\n')
-	if err != nil && err != io.EOF {
-		return nil, err
-	}
-
-	_, err = f.Seek(0, io.SeekStart)
-	if err != nil {
-		return nil, err
-	}
-	nw, err := io.Copy(f, buf)
-	if err != nil {
-		return nil, err
-	}
-	err = f.Truncate(nw)
-	if err != nil {
-		return nil, err
-	}
-	err = f.Sync()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = f.Seek(0, io.SeekStart)
-	if err != nil {
-		return nil, err
-	}
-	return line, nil
-}
-
-func checkJSciLinter() error {
-	_, err := exec.LookPath("gitlab-ci-local")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func prepareComabinedCiYaml(path string) (string, error) {
+func prepareComabinedCiYaml(linterPath, path string) (string, error) {
 	os.Chdir(path)
-	cmd := exec.Command("gitlab-ci-local", "--preview")
+	cmd := exec.Command(fmt.Sprintf("%s/gitlab-ci-local", linterPath), "--preview")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		if out != nil {
@@ -93,7 +38,7 @@ func prepareComabinedCiYaml(path string) (string, error) {
 	}
 	defer f.Close()
 
-	_, err = popLine(f)
+	_, err = helpers.PopLine(f)
 	if err != nil {
 		return "", err
 	}

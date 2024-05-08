@@ -14,7 +14,7 @@ var hookCmd = &cobra.Command{
 	Long:  "",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		repo := git.GitRepo{
+		repo := git.Repo{
 			Path: ".",
 		}
 		exist, fullHookPath := repo.CheckHook()
@@ -29,7 +29,7 @@ var hookAddCmd = &cobra.Command{
 	Long:  "",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		repo := git.GitRepo{
+		repo := git.Repo{
 			Path: ".",
 		}
 		repo.AddHook()
@@ -42,7 +42,7 @@ var hookDeleteCmd = &cobra.Command{
 	Long:  "",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		repo := git.GitRepo{
+		repo := git.Repo{
 			Path: ".",
 		}
 		repo.DeleteHook()

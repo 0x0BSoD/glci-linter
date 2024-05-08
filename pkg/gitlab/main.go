@@ -11,24 +11,25 @@ import (
 
 const (
 	httpRequestTimeout uint = 15
+	gitLabAPIVersion        = "v4"
 )
 
-type GitLabClient struct {
+type Client struct {
 	Token      string
 	ProjectID  int
 	RepoPath   string
-	ServerUrl  string
+	ServerURL  string
 	RepoDir    string
 	LinterPath string
 	ShowMerged bool
 }
 
-func NewGitLabClient(repoDir string) *GitLabClient {
-	res := GitLabClient{}
+func NewClient(repoDir string) *Client {
+	res := Client{}
 
-	server, path, _ := buildUrl(repoDir)
+	server, path, _ := buildURL(repoDir)
 	res.RepoPath = path
-	res.ServerUrl = server
+	res.ServerURL = server
 	res.RepoDir = repoDir
 	res.ShowMerged = viper.GetBool("show_merged")
 	res.LinterPath = viper.GetString("linter_path")
@@ -37,8 +38,8 @@ func NewGitLabClient(repoDir string) *GitLabClient {
 	return &res
 }
 
-func (glc *GitLabClient) getProjectID() error {
-	url := fmt.Sprintf("https://%s/api/v4/projects/%s", glc.ServerUrl, glc.RepoPath)
+func (glc *Client) getProjectID() error {
+	url := fmt.Sprintf("https://%s/api/%s/projects/%s", glc.ServerURL, gitLabAPIVersion, glc.RepoPath)
 	httpClient, req, err := httpClientRequest(glc.Token, "GET", url, "")
 
 	resp, err := httpClient.Do(req)
@@ -55,7 +56,7 @@ func (glc *GitLabClient) getProjectID() error {
 		return fmt.Errorf("[getProjectID] Unable to parse response: %w", err)
 	}
 
-	var result GitLabProject
+	var result Project
 	err = json.Unmarshal([]byte(body), &result)
 	if err != nil {
 		return fmt.Errorf("[getProjectID] Unable to parse JSON response: %w", err)
@@ -66,7 +67,7 @@ func (glc *GitLabClient) getProjectID() error {
 	return nil
 }
 
-func (glc *GitLabClient) Lint() error {
+func (glc *Client) Lint() error {
 	if err := glc.getProjectID(); err != nil {
 		return fmt.Errorf("[Lint] Unable to get ProjectID: %w", err)
 	}
@@ -76,7 +77,7 @@ func (glc *GitLabClient) Lint() error {
 		return fmt.Errorf("[Lint] Can't build YAML: %w", err)
 	}
 
-	url := fmt.Sprintf("https://gitlab.com/api/v4/projects/%v/ci/lint?include_merged_yaml=false", glc.ProjectID)
+	url := fmt.Sprintf("https://%s/api/%s/projects/%v/ci/lint?include_merged_yaml=false", glc.ServerURL, gitLabAPIVersion, glc.ProjectID)
 
 	httpClient, req, err := httpClientRequest(glc.Token, "POST", url, content)
 
@@ -94,7 +95,7 @@ func (glc *GitLabClient) Lint() error {
 		return fmt.Errorf("[Lint] Unable to parse response: %w", err)
 	}
 
-	var result GitlabAPILintResponse
+	var result APILintResponse
 	err = json.Unmarshal([]byte(body), &result)
 	if err != nil {
 		return fmt.Errorf("[Lint] Unable to parse JSON response: %w", err)

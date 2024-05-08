@@ -49,7 +49,7 @@ func prepareComabinedCiYaml(linterPath, path string) (string, error) {
 	}
 	defer f.Close()
 
-	var reqParams = GitlabAPILintRequest{Content: string(f1)}
+	var reqParams = APILintRequest{Content: string(f1)}
 	reqBody, _ := json.Marshal(reqParams)
 
 	return string(reqBody), nil
@@ -61,14 +61,14 @@ func prepareCiYaml(path string) (string, error) {
 		return "", err
 	}
 
-	var reqParams = GitlabAPILintRequest{Content: string(ciFile)}
+	var reqParams = APILintRequest{Content: string(ciFile)}
 	reqBody, _ := json.Marshal(reqParams)
 
 	return string(reqBody), nil
 }
 
-func buildUrl(repoDir string) (string, string, error) {
-	repo := git.GitRepo{
+func buildURL(repoDir string) (string, string, error) {
+	repo := git.Repo{
 		Path: repoDir,
 	}
 

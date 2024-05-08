@@ -39,7 +39,7 @@ var rootCmd = &cobra.Command{
 	Long:  "",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		client := gitlab.NewGitLabClient(".")
+		client := gitlab.NewClient(".")
 		err := client.Lint()
 		if err != nil {
 			fmt.Println(err)

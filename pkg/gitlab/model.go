@@ -4,18 +4,18 @@ import (
 	"time"
 )
 
-type GitlabAPILintRequest struct {
+type APILintRequest struct {
 	Content string `json:"content"`
 }
 
-type GitlabAPILintResponse struct {
+type APILintResponse struct {
 	Valid      bool     `json:"valid,omitempty"`
 	Warnings   []string `json:"warnings,omitempty"`
 	Errors     []string `json:"errors,omitempty"`
 	MergedYaml string   `json:"merged_yaml,omitempty"`
 }
 
-type GitLabProject struct {
+type Project struct {
 	ID                int       `json:"id"`
 	Description       string    `json:"description"`
 	Name              string    `json:"name"`

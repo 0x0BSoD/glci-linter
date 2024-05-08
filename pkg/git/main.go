@@ -8,15 +8,15 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-const HOOK_PATH = ".git/hooks/pre-commit"
+const HookPath = ".git/hooks/pre-commit"
 
-type GitRepo struct {
+type Repo struct {
 	Path    string
 	Remotes []*git.Remote
 	repo    *git.Repository
 }
 
-func (r *GitRepo) OpenRepo() error {
+func (r *Repo) OpenRepo() error {
 	var err error
 	r.repo, err = git.PlainOpen(r.Path)
 	if err != nil {
@@ -26,7 +26,7 @@ func (r *GitRepo) OpenRepo() error {
 	return nil
 }
 
-func (r *GitRepo) GetRmotes() error {
+func (r *Repo) GetRmotes() error {
 	var err error
 	r.Remotes, err = r.repo.Remotes()
 	if err != nil {
@@ -36,24 +36,25 @@ func (r *GitRepo) GetRmotes() error {
 	return nil
 }
 
-func (r *GitRepo) CheckHook() (bool, string) {
+func (r *Repo) CheckHook() (bool, string) {
 
-	fullHookPath := path.Join(r.Path, HOOK_PATH)
+	fullHookPath := path.Join(r.Path, HookPath)
 
 	f, err := os.Lstat(fullHookPath)
 	if os.IsNotExist(err) {
 		return false, fullHookPath
-	} else {
-		if f.Mode()&os.ModeSymlink != os.ModeSymlink {
-			fmt.Println("[hook] file already exist and it not SymLink")
-			return true, fullHookPath
-		}
 	}
+
+	if f.Mode()&os.ModeSymlink != os.ModeSymlink {
+		fmt.Println("[hook] file already exist and it not SymLink")
+		return true, fullHookPath
+	}
+
 	fmt.Println("[hook] file already exist")
 	return true, fullHookPath
 }
 
-func (r *GitRepo) AddHook() {
+func (r *Repo) AddHook() {
 	exist, fullHookPath := r.CheckHook()
 	if exist {
 		os.Exit(1)
@@ -73,7 +74,7 @@ func (r *GitRepo) AddHook() {
 	fmt.Println("[hook] created")
 }
 
-func (r *GitRepo) DeleteHook() {
+func (r *Repo) DeleteHook() {
 	exist, fullHookPath := r.CheckHook()
 	if !exist {
 		os.Exit(1)

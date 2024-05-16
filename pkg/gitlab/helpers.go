@@ -14,7 +14,7 @@ import (
 
 func prepareComabinedCiYaml(linterPath, path string) (string, error) {
 	os.Chdir(path)
-	cmd := exec.Command(fmt.Sprintf("%s/gitlab-ci-local", linterPath), "--preview")
+	cmd := exec.Command(fmt.Sprintf("%s", linterPath), "--preview")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		if out != nil {
@@ -24,6 +24,13 @@ func prepareComabinedCiYaml(linterPath, path string) (string, error) {
 			os.Exit(1)
 		}
 		return "", err
+	}
+
+	popCounter := 0
+	for k, v := range strings.Split(string(out), "\n") {
+		if v == "---" {
+			popCounter = k
+		}
 	}
 
 	fname := fmt.Sprintf("/tmp/gitlab-ci.%v.tmp", time.Now().Unix())
@@ -38,9 +45,13 @@ func prepareComabinedCiYaml(linterPath, path string) (string, error) {
 	}
 	defer f.Close()
 
-	_, err = helpers.PopLine(f)
-	if err != nil {
-		return "", err
+	if popCounter > 0 {
+		for lines := 0; lines < popCounter; lines++ {
+			_, err = helpers.PopLine(f)
+			if err != nil {
+				return "", err
+			}
+		}
 	}
 
 	f1, err := os.ReadFile(fname)

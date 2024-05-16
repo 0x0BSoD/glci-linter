@@ -50,7 +50,7 @@ build: $(PLATFORMS)
 $(PLATFORMS):
 	@echo "-> $@"
 	@echo "Building Go binary"
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build -a -ldflags $(GOLDFLAGS) -installsuffix cgo -o build/glci-linter_$(GOOS)_$(GOARCH) .
+	@CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -a -trimpath -ldflags $(GOLDFLAGS) -installsuffix cgo -o build/glci-linter_$(GOOS)_$(GOARCH) .
 
 .PHONY: test
 test:
